@@ -1,0 +1,56 @@
+NAME="automake1.4"
+VERSION=1.4-p6
+RELEASE=11
+CATEGORY="Devel"
+SUMMARY="(1.4) a tool for generating GNU-compliant Makefiles"
+DESCRIPTION="This is Automake, a Makefile generator.  It was inspired by the
+4.4BSD make and include files, but aims to be portable and to conform to the
+GNU standards for Makefile variables and targets.
+
+Automake1.4 contains automake-1.4, and may be installed alongside
+other versions such as automake1.6, automake1.8, etc."
+REQUIRES="autoconf coreutils m4 texinfo xz"
+HOMEPAGE="http://www.gnu.org/software/automake/"
+SRC_URI="mirror://gnu/automake/automake-${VERSION}.tar.gz"
+SRC_DIR="automake-${VERSION}"
+
+PATCH_URI="
+  http://pkgs.fedoraproject.org/cgit/automake14.git/plain/automake-1.4-libtoolize.patch
+  http://pkgs.fedoraproject.org/cgit/automake14.git/plain/automake-1.4-subdir.patch
+  http://pkgs.fedoraproject.org/cgit/automake14.git/plain/automake-1.4-backslash.patch
+  http://pkgs.fedoraproject.org/cgit/automake14.git/plain/automake-1.4-tags.patch
+  http://pkgs.fedoraproject.org/cgit/automake14.git/plain/automake-1.4-subdirs-89656.patch
+  http://pkgs.fedoraproject.org/cgit/automake14.git/plain/automake-1.4-p6-CVE-2009-4029.patch
+"
+
+DIFF_EXCLUDES="automake.info* stamp-vti version.texi"
+
+src_compile() {
+        # avoid cygautoreconf since we are not patching
+        # any Makefile.am's or configure.ac. Also helps
+        # to avoid circular dependency on previously-installed
+        # automake1.4
+	cd ${B}
+	cygconf
+	cygmake -j1
+}
+
+src_test() {
+	cd ${B}
+	env RECHECK_LOGS= make -e -k check
+}
+
+src_install() {
+        cd ${B}
+        cyginstall
+
+	dodoc ${S}/ChangeLog.*
+
+	# remove the unversioned executables
+	rm -f ${D}/usr/bin/automake ${D}/usr/bin/aclocal
+
+	# remove the unversioned info and man pages
+	rm -f ${D}/usr/share/info/automake.*
+	rm -f ${D}/usr/share/man/man1/automake.1
+	rm -f ${D}/usr/share/man/man1/aclocal.1
+}
